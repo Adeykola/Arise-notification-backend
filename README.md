@@ -1,7 +1,5 @@
  README.md – How to Setup & Test
-md
-Copy
-Edit
+
 # Next.js Notification Backend
 
 ## Features
@@ -21,22 +19,15 @@ Add your environment variables to .env.local
 
 Set up PostgreSQL tables:
 
-bash
-Copy
-Edit
 psql -U youruser -d yourdb -f prisma/migrations.sql
 Run the dev server:
 
-bash
-Copy
-Edit
+
 npm run dev
 API Endpoints
 POST /api/notify
 
-json
-Copy
-Edit
+
 {
   "userId": "uuid",
   "type": "email" | "sms" | "in-app",
@@ -47,9 +38,7 @@ Edit
 }
 POST /api/send-otp
 
-json
-Copy
-Edit
+
 {
   "userId": "uuid",
   "channel": "email" | "sms",
@@ -60,10 +49,7 @@ Testing
 Use Postman to test notify and send-otp endpoints.
 Check logs for delivery or errors.
 
-yaml
-Copy
-Edit
+👨‍💻 Author
+Adekola Afolabi — LinkedIn
 
----
 
-Shall I bundle all this in a downloadable `.zip`
