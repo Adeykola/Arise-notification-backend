@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // should not confirm the validate since it is a service to service validation
   if (!userId || !type || !title || !message)
     return res.status(400).json({ error: 'Missing required fields' });
-
+// also we are using type ORM. prisma. let avoid raw query because of sql injectio 
   try {
     await pool.query(
       'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
