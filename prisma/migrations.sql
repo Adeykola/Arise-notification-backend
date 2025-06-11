@@ -1,3 +1,4 @@
+-- this user table is not needed 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY,
   email TEXT,
@@ -13,6 +14,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- this also is not needed otp is for the authentication service
 CREATE TABLE IF NOT EXISTS otps (
   id SERIAL PRIMARY KEY,
   user_id UUID REFERENCES users(id),
