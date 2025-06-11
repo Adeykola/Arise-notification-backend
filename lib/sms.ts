@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+//Generic  message type is advert. we want to use dnd
+
 export async function sendSMS(to: string, message: string) {
   const payload = {
     api_key: process.env.TERMII_API_KEY,
@@ -12,6 +14,7 @@ export async function sendSMS(to: string, message: string) {
 
   try {
     const response = await axios.post('https://api.ng.termii.com/api/sms/send', payload);
+    // we are not normalizing the data from termii.
     return response.data;
   } catch (err) {
     console.error('SMS Error:', err);
