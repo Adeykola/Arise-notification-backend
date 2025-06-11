@@ -3,9 +3,11 @@ import pool from '../../lib/db';
 import { sendEmail } from '../../lib/email';
 import { sendSMS } from '../../lib/sms';
 
+
+// I think we should separate sms and email notification api
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, type, title, message, email, phone } = req.body;
-
+// should not confirm the validate since it is a service to service validation
   if (!userId || !type || !title || !message)
     return res.status(400).json({ error: 'Missing required fields' });
 
