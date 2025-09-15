@@ -1,26 +1,47 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import pool from '../../lib/db';
-import { sendEmail } from '../../lib/email';
-import { sendSMS } from '../../lib/sms';
+import { addEmailToQueue } from '../queues/emailQueue';
+import { addSmsToQueue } from '../queues/smsQueue';
+import { v4 as uuidv4 } from 'uuid';
+import prisma from '../../lib/prisma'; // you would have set up Prisma
 
-
-// I think we should separate sms and email notification api
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, type, title, message, email, phone } = req.body;
-// should not confirm the validate since it is a service to service validation
-  if (!userId || !type || !title || !message)
+
+  // Service-to-service: skip user validation, but check required fields
+  if (!userId || !type || !title || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
-// also we are using type ORM. prisma. let avoid raw query because of sql injectio 
+  }
+
   try {
-    await pool.query(
-      'INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, $4)',
-      [userId, title, message, type]
-    );
+    // Use Prisma ORM to avoid SQL injection
+    await prisma.notification.create({
+      data: {
+        userId,
+        title,
+        message,
+        type,
+      },
+    });
 
-    if (type === 'email' && email) await sendEmail(email, title, message);
-    else if (type === 'sms' && phone) await sendSMS(phone, message);
+    const trackingId = uuidv4();
 
-    res.status(200).json({ status: 'Notification sent' });
+    if (type === 'email' && email) {
+      await addEmailToQueue({
+        toEmail: email,
+        message: `${title}\n\n${message}`,
+        isHtml: false,
+        attachments: [],
+        trackingId,
+      });
+    } else if (type === 'sms' && phone) {
+      await addSmsToQueue({
+        toPhoneNumber: phone,
+        message: `${title}: ${message}`,
+        trackingId,
+      });
+    }
+
+    res.status(200).json({ status: 'Notification queued' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Notification failed' });

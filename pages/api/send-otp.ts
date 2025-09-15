@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { generateAndSendOTP } from '../../lib/otp';
+import { addSmsToQueue } from '../queues/smsQueue';
+import { addEmailToQueue } from '../queues/emailQueue';
+import { v4 as uuidv4 } from 'uuid'; // Help me install 'uuid' package
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, channel, email, phone } = req.body;
@@ -9,41 +11,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const contact = channel === 'email' ? email : phone;
-    await generateAndSendOTP(userId, channel, contact);
-    res.status(200).json({ status: 'OTP sent' });
+    // Generate OTP (replace with your own logic if needed)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const trackingId = uuidv4();
+    const message = `Your otp is ${otp} and it expires in 2 minutes`;
+
+    if (channel === 'sms') {
+      await addSmsToQueue({
+        toPhoneNumber: phone,
+        message,
+        trackingId
+      });
+    } else if (channel === 'email') {
+      await addEmailToQueue({
+        toEmail: email,
+        message,
+        isHtml: false,
+        attachments: [],
+        trackingId
+      });
+    }
+
+    res.status(200).json({ status: 'OTP queued' });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to send OTP' });
+    res.status(500).json({ error: 'Failed to queue OTP' });
   }
-
-  /** SMS Queue
-   * // write a conusmer that listens to the sms queue;
-   * // check using the tracking Id if that message has been sent before
-   * // pick the service preferred client(either from db or config) to process the sms.
-   * //send the sms to the user;
-   * // save the message to the db
-   *
-   * {
-   *     toPhoneNumber: "08179606787",
-   *     message: "Your otp is 124456 and it expires in 2 minutes",
-   *     trackingId : uuid
-   * }
-   */
-
-
-  /**
-   * EMAIL QUEUE
-   * write a consumer that listens to the email queue;
-   * check using the trackingId if that message has been sent before
-   * pick the preferred client (either from config or db) to process the email;
-   * send the email to user;
-   * save the email to the db
-   * {
-   * toEmail : "test@gmail.com"
-   * message :"dear kdfsdkaldfke",
-   * isHtml : true,
-   * attachments: Document[]
-   * }
-   */
-
 }
